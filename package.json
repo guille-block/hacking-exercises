@@ -1,0 +1,7 @@
+{
+  "name": "smart-contract-security",
+  "version": "1.0.0",
+  "description": "Security challenges: Ethernaut, Capture-the-ether & Damn-vulnerable-defi",
+  "author": "Guillermo Fairbairn",
+  "license": "ISC"
+}
