@@ -1,6 +1,6 @@
 pragma solidity 0.8.15;
 
-import "../challenge-contracts/Elevator.sol";
+import "../challenge/Elevator.sol";
 
 contract ElevatorAttacker is Building {
     bool set;

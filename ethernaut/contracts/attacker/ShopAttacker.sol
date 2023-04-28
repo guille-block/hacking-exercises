@@ -1,6 +1,6 @@
 pragma solidity 0.8.15;
 
-import "../challenge-contracts/Shop.sol";
+import "../challenge/Shop.sol";
 
 contract ShopAttacker {
     uint256 private constant REQUIRE_PRICE = 100;
