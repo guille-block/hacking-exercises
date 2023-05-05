@@ -3,7 +3,8 @@ pragma solidity 0.8.15;
 import "../challenge/Elevator.sol";
 
 contract ElevatorAttacker is Building {
-    bool set;
+    bool private set;
+    
     function attack(address target) external {
         Elevator(target).goTo(0);
     }
