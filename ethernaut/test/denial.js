@@ -18,7 +18,7 @@ describe("Denial", async () => {
 
     after(async () => {
         await expect(
-            this.denial.withdraw({gasLimit: 1000000})
+            this.denial.withdraw({gasLimit: 100000})
         ).to.be.reverted();
     })
 })
